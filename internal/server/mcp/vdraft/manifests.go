@@ -24,7 +24,17 @@ import (
 
 // generateToolManifest generates Tool for list tools result
 func generateToolManifest(name, desc string, authInvoke []string, params parameters.Parameters, annotations *tools.ToolAnnotations) Tool {
-	inputSchema, authParams := generateParamManifest(params)
+	var standardParams parameters.Parameters
+	var secureParams parameters.Parameters
+	for _, p := range params {
+		if p.GetSecure() {
+			secureParams = append(secureParams, p)
+		} else {
+			standardParams = append(standardParams, p)
+		}
+	}
+
+	inputSchema, authParams := generateParamManifest(standardParams)
 	var toolAnnotations *ToolAnnotations
 	if annotations != nil {
 		toolAnnotations = &ToolAnnotations{
@@ -41,6 +51,10 @@ func generateToolManifest(name, desc string, authInvoke []string, params paramet
 		Description:     desc,
 		ToolInputSchema: inputSchema,
 		Annotations:     toolAnnotations,
+	}
+	if len(secureParams) > 0 {
+		secureInputSchema, _ := generateParamManifest(secureParams)
+		mcpManifest.SecureInputSchema = &secureInputSchema
 	}
 	metadata := make(map[string]any)
 	if len(authInvoke) > 0 {
@@ -90,12 +104,22 @@ func generateParamManifest(ps parameters.Parameters) (InputSchema, map[string][]
 }
 
 // GenerateListToolsResult generates tools/list method result according to mcp schema
-func GenerateListToolsResult(t tools.Toolset, toolsMap map[string]tools.Tool) (ListToolsResult, error) {
+func GenerateListToolsResult(t tools.Toolset, toolsMap map[string]tools.Tool, supportsSecureParams bool) (ListToolsResult, error) {
 	mcpManifest := make([]Tool, 0, len(t.ToolNames))
 	for _, toolName := range t.ToolNames {
 		tool, ok := toolsMap[toolName]
 		if !ok {
 			return ListToolsResult{}, fmt.Errorf("tool does not exist: %s", toolName)
+		}
+		var hasSecureParams bool
+		for _, p := range tool.GetParameters() {
+			if p.GetSecure() {
+				hasSecureParams = true
+				break
+			}
+		}
+		if hasSecureParams && !supportsSecureParams {
+			continue
 		}
 		toolManifest := generateToolManifest(toolName, tool.GetDescription(), tool.GetAuthRequired(), tool.GetParameters(), tool.GetAnnotations())
 		mcpManifest = append(mcpManifest, toolManifest)
