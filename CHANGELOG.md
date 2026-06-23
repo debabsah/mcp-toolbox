@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/googleapis/mcp-toolbox/compare/v1.5.0...v1.6.0) (2026-06-23)
+
+
+### Features
+
+* **looker:** Support complex filter_expression parameter in queries ([#3494](https://github.com/googleapis/mcp-toolbox/issues/3494)) ([997fb8c](https://github.com/googleapis/mcp-toolbox/commit/997fb8c39a4cb60173bcc8543118057e77e0fce4))
+
 ## [1.5.0](https://github.com/googleapis/mcp-toolbox/compare/v1.4.0...v1.5.0) (2026-06-18)
 
 
