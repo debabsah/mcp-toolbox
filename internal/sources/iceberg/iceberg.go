@@ -98,6 +98,10 @@ func (s *Source) ToConfig() sources.SourceConfig {
 	return s.Config
 }
 
+func (s *Source) IsReadOnly() bool {
+	return false
+}
+
 func (s *Source) IcebergCatalog() catalog.Catalog {
 	return s.Cat
 }
